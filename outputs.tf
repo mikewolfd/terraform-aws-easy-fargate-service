@@ -11,10 +11,10 @@ output "task_execution_role" {
   value = aws_iam_role.ecs_execution
 }
 output "alb_dns" {
-  value = aws_lb.alb.dns_name
+  value = try(aws_lb.alb.0.dns_name, null)
 }
 output "alb" {
-  value = aws_lb.alb
+  value = try(aws_lb.alb.0, null)
 }
 output "security_group_id" {
   value = aws_security_group.fargate.id
@@ -22,4 +22,3 @@ output "security_group_id" {
 output "cloudfront" {
   value = try(aws_cloudfront_distribution.distribution[0], null)
 }
-

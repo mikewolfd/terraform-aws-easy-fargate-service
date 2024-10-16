@@ -40,6 +40,11 @@ variable "enable_execute_command" {
 }
 
 # Application Load Balancer
+variable "enable_load_balancer" {
+  type        = bool
+  default     = true
+  description = "Enable or disable the creation of an ALB"
+}
 variable "alb_idle_timeout" {
   type        = number
   description = "Optional; Idle Timeout config for the ALB"

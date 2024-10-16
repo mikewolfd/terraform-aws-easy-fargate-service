@@ -1,5 +1,5 @@
 resource "aws_cloudfront_distribution" "distribution" {
-  count           = var.use_cloudfront ? 1 : 0
+  count           = var.use_cloudfront ? var.enable_load_balancer ? 1 : 0 : 0
   aliases         = var.service_fqdn == "" ? [] : [var.service_fqdn]
   comment         = var.family
   enabled         = true
@@ -22,7 +22,7 @@ resource "aws_cloudfront_distribution" "distribution" {
     }
   }
   origin {
-    domain_name = aws_lb.alb.dns_name
+    domain_name = aws_lb.alb.0.dns_name
     origin_id   = var.family
     custom_origin_config {
       http_port              = 80

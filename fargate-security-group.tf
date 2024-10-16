@@ -29,11 +29,12 @@ resource "aws_security_group_rule" "fargate_egress" {
 #}
 
 resource "aws_security_group_rule" "fargate_ingress_alb" {
+  count                    = var.enable_load_balancer ? 1 : 0
   type                     = "ingress"
   from_port                = var.container_port
   to_port                  = var.container_port
   protocol                 = "tcp"
   security_group_id        = aws_security_group.fargate.id
-  source_security_group_id = aws_security_group.alb_ingress.id
+  source_security_group_id = aws_security_group.alb_ingress.0.id
   description              = "Allows ingress traffic to this container on port ${var.container_port} from the ALB"
 }

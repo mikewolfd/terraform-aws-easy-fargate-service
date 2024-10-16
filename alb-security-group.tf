@@ -1,4 +1,5 @@
 resource "aws_security_group" "alb_ingress" {
+  count       = var.enable_load_balancer ? 1 : 0
   name        = "${var.family}-alb"
   description = "A security group used by the ${var.family} application load balancer"
   vpc_id      = local.vpc_id
@@ -6,49 +7,50 @@ resource "aws_security_group" "alb_ingress" {
 }
 
 resource "aws_security_group_rule" "alb_egress" {
+  count             = var.enable_load_balancer ? 1 : 0
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "all"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.alb_ingress.id
+  security_group_id = aws_security_group.alb_ingress.0.id
   description       = "Allows egress traffic by this ALB on any port to anywhere."
 }
 
 resource "aws_security_group_rule" "alb_egress_ipv6" {
-  count = var.ipv6 ? 1 : 0
+  count = var.enable_load_balancer && var.ipv6 ? 1 : 0
 
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "all"
   ipv6_cidr_blocks  = ["::/0"]
-  security_group_id = aws_security_group.alb_ingress.id
+  security_group_id = aws_security_group.alb_ingress.0.id
   description       = "Allows egress traffic by this ALB on any port to anywhere."
 }
 
 resource "aws_security_group_rule" "alb_ingress" {
   ## Only create ingress rules when there's no explicit alb_security_groups being passed in
-  for_each = length(var.alb_security_group_ids) > 0 ? {} : { for item in local.listeners : item.port => item }
+  for_each = length(var.alb_security_group_ids) > 0 ? {} : { for item in local.listeners : item.port => item if var.enable_load_balancer }
 
   type              = "ingress"
   from_port         = each.value.port
   to_port           = each.value.port
   protocol          = "tcp"
   cidr_blocks       = local.is_internal && var.vpc_id != "" ? [data.aws_vpc.other[0].cidr_block] : ["0.0.0.0/0"]
-  security_group_id = aws_security_group.alb_ingress.id
+  security_group_id = aws_security_group.alb_ingress.0.id
   description       = "Allows ingress traffic on port ${each.value.port} to this ALB from anywhere."
 }
 
 resource "aws_security_group_rule" "alb_ingress_ipv6" {
   ## Only create ingress rules when there's no explicit alb_security_groups being passed in and IPv6 is enabled
-  for_each = length(var.alb_security_group_ids) > 0 ? {} : !var.ipv6 ? {} : { for item in local.listeners : item.port => item }
+  for_each = length(var.alb_security_group_ids) > 0 ? {} : !var.ipv6 ? {} : { for item in local.listeners : item.port => item if var.enable_load_balancer }
 
   type              = "ingress"
   from_port         = each.value.port
   to_port           = each.value.port
   protocol          = "tcp"
   ipv6_cidr_blocks  = local.is_internal && var.vpc_id != "" ? [data.aws_vpc.other[0].cidr_block] : ["::/0"]
-  security_group_id = aws_security_group.alb_ingress.id
+  security_group_id = aws_security_group.alb_ingress.0.id
   description       = "Allows ingress traffic on port ${each.value.port} to this ALB from anywhere."
 }

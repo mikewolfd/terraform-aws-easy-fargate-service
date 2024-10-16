@@ -1,4 +1,5 @@
 resource "random_string" "tg_suffix" {
+  count   = var.enable_load_balancer ? 1 : 0
   length  = 4
   upper   = false
   special = false
@@ -9,8 +10,9 @@ resource "random_string" "tg_suffix" {
   }
 }
 resource "aws_lb_target_group" "alb" {
+  count = var.enable_load_balancer ? 1 : 0
   # Excluding "name" field to allow for easier replacement when changing properties
-  name = replace("${var.family}-${random_string.tg_suffix.result}", "_", "-") # Convert underscores to hyphens to support the ALB API
+  name = replace("${var.family}-${random_string.tg_suffix.0.result}", "_", "-") # Convert underscores to hyphens to support the ALB API
   #name_prefix          = substr(var.family, 0, 6)
   port                 = var.container_port
   protocol             = "HTTP"

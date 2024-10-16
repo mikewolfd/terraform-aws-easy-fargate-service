@@ -1,8 +1,5 @@
 resource "aws_ecs_service" "fargate" {
-  depends_on = [
-    aws_lb.alb,
-    aws_lb_target_group.alb
-  ]
+  depends_on                         = [aws_lb.alb.0, aws_lb_target_group.alb.0]
   name                               = var.family
   cluster                            = "arn:aws:ecs:${local.region}:${local.account_id}:cluster/${var.cluster_name}"
   task_definition                    = aws_ecs_task_definition.fargate.arn
@@ -11,7 +8,7 @@ resource "aws_ecs_service" "fargate" {
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   platform_version                   = var.platform_version
   launch_type                        = "FARGATE"
-  health_check_grace_period_seconds  = 10
+  health_check_grace_period_seconds  = var.enable_load_balancer ? 10 : null
   enable_execute_command             = var.enable_execute_command
   force_new_deployment               = true
   tags                               = var.tags_ecs_service_enabled ? merge(var.tags, var.tags_ecs, var.tags_ecs_service) : null
@@ -30,10 +27,13 @@ resource "aws_ecs_service" "fargate" {
     ignore_changes = [desired_count]
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.alb.arn
-    container_name   = local.container_definitions_with_defaults[0].name
-    container_port   = var.container_port
+  dynamic "load_balancer" {
+    for_each = var.enable_load_balancer ? [1] : []
+    content {
+      target_group_arn = aws_lb_target_group.alb.0.arn
+      container_name   = local.container_definitions_with_defaults[0].name
+      container_port   = var.container_port
+    }
   }
 
   network_configuration {
