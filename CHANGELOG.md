@@ -1,5 +1,14 @@
 # Changelog
 
+## v11.2.0
+* **UPDATE**
+  * Module will now require Terraform version ~> v1.9 with AWS provider ~> 5.0
+
+## v11.1.2
+
+* **UPDATE**
+  * Added new variable `cloudfront_whitelist_forwarded_headers` allowing the engineer to add additional CloudFront headers to the whitelist.
+
 ## v11.1.1
 * **UPDATE**
   * Added new variable `task_log_configuration_options` allowing the engineer to add or override task definition log configuration options.
