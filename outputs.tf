@@ -22,3 +22,10 @@ output "security_group_id" {
 output "cloudfront" {
   value = try(aws_cloudfront_distribution.distribution[0], null)
 }
+output "https_listener_arn" {
+  description = "ARN of the HTTPS listener"
+  value = try(
+    aws_lb_listener.https_forwards[443].arn,
+    null
+  )
+}
